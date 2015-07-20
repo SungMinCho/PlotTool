@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "qcustomplot.h"
+#include "mainwindow.h"
 
 
 
@@ -10854,6 +10855,9 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
   // call event of affected layout element:
   if (QCPLayoutElement *el = layoutElementAt(event->pos()))
     el->wheelEvent(event);
+
+  MainWindow* mw = (MainWindow*) parentWidget()->parentWidget();
+  mw->wheelEvent(event);
   
   QWidget::wheelEvent(event);
 }

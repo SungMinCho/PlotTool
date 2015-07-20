@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QFileSystemModel>
+#include <QWheelEvent>
 
 namespace Ui {
 class MainWindow;
@@ -15,6 +16,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    void wheelEvent(QWheelEvent *event);
 
 private slots:
     void on_treeView_doubleClicked(const QModelIndex &index);
@@ -44,6 +47,7 @@ private slots:
     void updateResult();
 
     void on_MBperCount_textChanged();
+
 
 private:
     Ui::MainWindow *ui;

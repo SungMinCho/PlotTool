@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <QWheelEvent>
 
 using namespace std;
 
@@ -20,7 +21,9 @@ QVector<double>& inputLatency = QVector<double>();
 QVector<double>& inputLatencyGrouped = QVector<double>();
 int groupby;
 bool dontupdate;
-
+double graphwidth;
+double graphheight;
+bool wheeling = false;
 
 vector<string> split(const string &s, char delim = '\b') {
     vector<string> elems;
@@ -128,6 +131,7 @@ void MainWindow::updateResult() {
     if(xmin > xmax) return;
     if(xmin < defaultXmin) return;
     if(xmax > defaultXmax) return;
+    if(xmax >= inputLatency.size()) return;
 
     int i;
     double totalLatency = 0;
@@ -242,6 +246,9 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
     defaultYmin = minOp - 10;
     defaultYmax = maxOp + 10;
 
+    graphwidth = defaultXmax - defaultXmin;
+    graphheight = defaultYmax - defaultYmin;
+
     dontupdate = true; // lock updateResult. faster startup
     // if we don't lock, all setText below will trigger updateResult.
     ui->xmin->setText(QString::number(0));
@@ -282,6 +289,9 @@ void MainWindow::resetRange() {
     ui->customPlot->xAxis->setRange(xmin, xmax);
     ui->customPlot->yAxis->setRange(ymin, ymax);
     ui->customPlot->replot();
+
+    graphwidth = xmax - xmin;
+    graphheight = ymax - ymin;
 
     updateResult();
 
@@ -412,4 +422,49 @@ void MainWindow::on_groupBy_textChanged()
 void MainWindow::on_MBperCount_textChanged()
 {
     updateResult();
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event) {
+    if(wheeling) return;
+    wheeling = true;
+
+    int delta = event->delta() / 120;
+
+    double mult = 0;
+    if(delta == 1)
+        mult = 0.9;
+    else
+        mult = 1.1;
+
+    graphwidth *= mult;
+    graphheight *= mult;
+
+    QPoint pos = event->pos();
+    int posx = pos.rx();
+    int posy = pos.ry();
+
+    double xmin = ui->xmin->toPlainText().toInt();
+    double ymax = ui->ymax->toPlainText().toDouble();
+
+    double xmid = xmin + graphwidth*((double)posx / ui->customPlot->width());
+    double ymid = ymax - graphheight*((double)posy / ui->customPlot->height());
+
+    cout << "xmid ymid " << xmid << ' ' << ymid << endl;
+
+
+    int newxmin = (int) (xmid - graphwidth/2);
+    int newxmax = (int) (xmid + graphwidth/2);
+    double newymin = ymid - graphheight/2;
+    double newymax = ymid + graphheight/2;
+
+    dontupdate = true;
+
+    ui->xmin->setText(QString::number(newxmin));
+    ui->xmax->setText(QString::number(newxmax));
+    ui->ymin->setText(QString::number(newymin));
+    ui->ymax->setText(QString::number(newymax));
+
+    dontupdate = false;
+    resetRange();
+    wheeling = false;
 }
