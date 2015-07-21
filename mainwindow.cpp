@@ -428,10 +428,10 @@ void MainWindow::wheelEvent(QWheelEvent *event) {
     if(wheeling) return;
     wheeling = true;
 
-    int delta = event->delta() / 120;
+    int delta = event->delta();
 
     double mult = 0;
-    if(delta == 1)
+    if(delta > 0)
         mult = 0.9;
     else
         mult = 1.1;
@@ -443,19 +443,19 @@ void MainWindow::wheelEvent(QWheelEvent *event) {
     int posx = pos.rx();
     int posy = pos.ry();
 
-    double xmin = ui->xmin->toPlainText().toInt();
-    double ymax = ui->ymax->toPlainText().toDouble();
-
-    double xmid = xmin + graphwidth*((double)posx / ui->customPlot->width());
-    double ymid = ymax - graphheight*((double)posy / ui->customPlot->height());
-
-    cout << "xmid ymid " << xmid << ' ' << ymid << endl;
+    double xmid = ui->customPlot->xAxis->range().center();
+    double ymid = ui->customPlot->yAxis->range().center();
+    double xoffset = (posx - ((double) ui->customPlot->width() / 2)) / ui->customPlot->width() * ui->customPlot->xAxis->range().size();
+    double yoffset = (- (posy - ((double) ui->customPlot->height() / 2))) / ui->customPlot->height() * ui->customPlot->yAxis->range().size();
 
 
-    int newxmin = (int) (xmid - graphwidth/2);
-    int newxmax = (int) (xmid + graphwidth/2);
-    double newymin = ymid - graphheight/2;
-    double newymax = ymid + graphheight/2;
+    //cout << "xmid ymid width height " << xmid << ' ' << ymid << ' ' << graphwidth << ' ' << graphheight << endl;
+
+
+    int newxmin = (int) ((xmid - graphwidth/2) + xoffset);
+    int newxmax = (int) ((xmid + graphwidth/2) + xoffset);
+    double newymin = ymid - graphheight/2 + yoffset;
+    double newymax = ymid + graphheight/2 + yoffset;
 
     dontupdate = true;
 
